@@ -133,13 +133,8 @@
             activeProductElement.classList.remove(classNames.menuProduct.wrapperActive);
           }
         }
-        /* Check if clicked section was already active */
-        if (thisProduct.element.classList.contains(classNames.menuProduct.wrapperActive)) {
-          activeProductElement.classList.remove(classNames.menuProduct.wrapperActive);
-        } else {
-          /* toggle active class on thisProduct.element */
-          thisProduct.element.classList.add(classNames.menuProduct.wrapperActive);
-        }
+        /* toggle active class on thisProduct.element */
+        thisProduct.element.classList.toggle(classNames.menuProduct.wrapperActive);
       });
 
     }
