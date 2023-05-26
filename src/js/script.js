@@ -62,13 +62,12 @@
       thisProduct.renderInMenu();
       thisProduct.getElements();
       thisProduct.initAccordion();
-      thisProduct.initOrderFrom();
+      thisProduct.initOrderForm();
       thisProduct.processOrder();
     }
 
-    initOrderFrom() {
+    initOrderForm() {
       const thisProduct = this;
-      console.log('initOrderFrom');
 
       thisProduct.form.addEventListener('submit', function (event) {
         event.preventDefault();
@@ -89,7 +88,43 @@
 
     processOrder() {
       const thisProduct = this;
-      console.log('processOrder');
+
+      // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      console.log('formData', formData);
+
+      // set price to default price
+      let price = thisProduct.data.price;
+
+      // for every category (param)...
+      for (let paramId in thisProduct.data.params) {
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        const param = thisProduct.data.params[paramId];
+        // console.log(paramId, param);
+
+        // for every option in this category
+        for (let optionId in param.options) {
+          // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          const option = param.options[optionId];
+          // console.log(optionId, option);
+
+          // Is this option checked (is it in the formData)?
+          if (formData[paramId] && formData[paramId].includes(optionId)) {
+            // Is it not checked by default?
+            if (!option.hasOwnProperty('default')) {
+              price += option.price;
+            }
+          } else { // the option isn't checked
+            // is the option is default?
+            if (option.hasOwnProperty('default')) {
+              price -= option.price;
+            }
+          }
+        }
+      }
+
+      // update calculated price in the HTML
+      thisProduct.priceElem.innerHTML = price;
     }
 
     renderInMenu() {
