@@ -100,24 +100,35 @@
       for (let paramId in thisProduct.data.params) {
         // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
         const param = thisProduct.data.params[paramId];
-        // console.log(paramId, param);
 
         // for every option in this category
         for (let optionId in param.options) {
           // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
           const option = param.options[optionId];
-          // console.log(optionId, option);
+          const isTheOptionDefault = option.hasOwnProperty('default');
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
 
-          // Is this option checked (is it in the formData)?
-          if (formData[paramId] && formData[paramId].includes(optionId)) {
-            // Is it not checked by default?
-            if (!option.hasOwnProperty('default')) {
+          // Add or remove from price depending on the checkbox status
+          if (optionSelected) {
+            if (!isTheOptionDefault) {
               price += option.price;
             }
-          } else { // the option isn't checked
-            // is the option is default?
-            if (option.hasOwnProperty('default')) {
+          } else {
+            if (isTheOptionDefault) {
               price -= option.price;
+            }
+          }
+
+          // Show or hide images depending on the checkbox status 
+          const optionImage = thisProduct.imageWrapper.querySelector(`.${paramId}-${optionId}`);
+          // If image div was found
+          if (optionImage) {
+            if (optionSelected) {
+              // Add active class
+              optionImage.classList.add(classNames.menuProduct.imageVisible);
+            } else {
+              // Remove active class
+              optionImage.classList.remove(classNames.menuProduct.imageVisible);
             }
           }
         }
@@ -151,6 +162,7 @@
       thisProduct.formInputs = thisProduct.form.querySelectorAll(select.all.formInputs);
       thisProduct.cartButton = thisProduct.element.querySelector(select.menuProduct.cartButton);
       thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
+      thisProduct.imageWrapper = thisProduct.element.querySelector(select.menuProduct.imageWrapper);
     }
 
     initAccordion() {
