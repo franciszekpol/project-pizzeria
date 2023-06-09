@@ -93,6 +93,63 @@
       thisProduct.processOrder();
     }
 
+    addToCart() {
+      const thisProduct = this;
+
+      app.cart.add(thisProduct.prepareCartProduct());
+    }
+
+    prepareCartProduct() {
+      const thisProduct = this;
+
+      const productSummary = {};
+
+      productSummary.id = thisProduct.id;
+      productSummary.name = thisProduct.data.name;
+      productSummary.amount = thisProduct.amountWidget.value;
+      productSummary.price = thisProduct.priceSingle * thisProduct.amountWidget.value;
+      productSummary.priceSingle = thisProduct.priceSingle;
+      productSummary.params = this.prepareCartProductParams();
+
+      return productSummary;
+    }
+
+    prepareCartProductParams() {
+      const thisProduct = this;
+      const cartProductParams = {};
+
+      // covert form to object structure e.g. { sauce: ['tomato'], toppings: ['olives', 'redPeppers']}
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      console.log('formData', formData);
+
+      // for every category (param)...
+      for (let paramId in thisProduct.data.params) {
+        // determine param value, e.g. paramId = 'toppings', param = { label: 'Toppings', type: 'checkboxes'... }
+        const param = thisProduct.data.params[paramId];
+        const paramIdCapitalized = paramId.charAt(0).toUpperCase() + paramId.slice(1);
+
+        cartProductParams[paramId] = {
+          label: paramIdCapitalized,
+          options: {}
+        };
+
+        // for every option in this category
+        for (let optionId in param.options) {
+          // determine option value, e.g. optionId = 'olives', option = { label: 'Olives', price: 2, default: true }
+          const optionSelected = formData[paramId] && formData[paramId].includes(optionId);
+
+          // If checkbox is selected
+          if (optionSelected) {
+            const optionIdCapitalized = optionId.charAt(0).toUpperCase() + optionId.slice(1);
+
+            cartProductParams[paramId].options[optionId] = optionIdCapitalized;
+          }
+        }
+      }
+
+      return cartProductParams;
+    }
+
     initOrderForm() {
       const thisProduct = this;
 
@@ -110,6 +167,7 @@
       thisProduct.cartButton.addEventListener('click', function (event) {
         event.preventDefault();
         thisProduct.processOrder();
+        thisProduct.addToCart();
       });
     }
 
@@ -163,6 +221,9 @@
 
       // multiply price by amount
       price *= thisProduct.amountWidget.value;
+
+      // assign calculated price to a field in Product object
+      thisProduct.priceSingle = price;
 
       // update calculated price in the HTML
       thisProduct.priceElem.innerHTML = price;
@@ -316,6 +377,20 @@
       thisCart.dom.wrapper = element;
 
       thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(select.cart.toggleTrigger);
+
+      thisCart.dom.productList = thisCart.dom.wrapper.querySelector(select.cart.productList);
+    }
+
+    add(menuProduct) {
+      const thisCart = this;
+
+      console.log('adding product', menuProduct);
+
+      const generateHTML = templates.cartProduct(menuProduct);
+
+      const generatedDOM = utils.createDOMFromHTML(generateHTML);
+
+      thisCart.dom.productList.appendChild(generatedDOM);
     }
 
     initActions() {
